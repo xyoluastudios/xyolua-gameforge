@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { GameForge, slugify } from '../src/app.js';
@@ -215,7 +215,8 @@ describe('GameForge app', () => {
       initGit: false,
       onEvent: (e) => events.push(e),
     });
-    expect(result.root).toBe(path.join(parent, 'abandoned'));
+    // The session works with the resolved real path (macOS /private/var, Windows long names).
+    expect(result.root).toBe(realpathSync.native(path.join(parent, 'abandoned')));
     expect(readFileSync(path.join(result.root, 'fake.project'), 'utf8')).toBe('Abandoned');
     const steps = events
       .filter((e) => e.type === 'pipeline:step')
