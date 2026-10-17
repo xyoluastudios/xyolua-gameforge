@@ -1,0 +1,51 @@
+{
+  "name": "xyolua-gameforge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open-source, local-first AI game development environment. Describe a game, review the plan, get a playable Godot project.",
+  "license": "Apache-2.0",
+  "author": "XyoLua Studios",
+  "homepage": "https://github.com/xyoluastudios/xyolua-gameforge#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xyoluastudios/xyolua-gameforge.git"
+  },
+  "bugs": "https://github.com/xyoluastudios/xyolua-gameforge/issues",
+  "type": "module",
+  "packageManager": "pnpm@10.34.7",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "pnpm build:packages && pnpm --filter @gameforge/desktop build",
+    "build:packages": "tsc -b packages/core packages/godot packages/cli packages/mcp",
+    "dev": "pnpm build:packages && pnpm --filter @gameforge/desktop dev",
+    "typecheck": "tsc -b packages/core packages/godot packages/cli packages/mcp && pnpm --filter @gameforge/desktop typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "pnpm --filter @gameforge/desktop test:e2e",
+    "gameforge": "node packages/cli/dist/bin.js",
+    "package": "pnpm build && pnpm --filter @gameforge/desktop package",
+    "clean": "node scripts/clean.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.10.1",
+    "eslint": "^10.12.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.0.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.2",
+    "vitest": "^5.0.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
+  }
+}

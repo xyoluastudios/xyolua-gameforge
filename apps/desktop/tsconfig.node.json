@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "verbatimModuleSyntax": true,
+    "types": ["node"],
+    "paths": {
+      "@gameforge/core": ["../../packages/core/src/index.ts"],
+      "@gameforge/godot": ["../../packages/godot/src/index.ts"],
+      "@shared/*": ["./src/shared/*"]
+    }
+  },
+  "include": [
+    "src/main",
+    "src/preload",
+    "src/shared",
+    "electron.vite.config.ts",
+    "playwright.config.ts",
+    "e2e"
+  ]
+}

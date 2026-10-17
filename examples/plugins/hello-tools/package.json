@@ -1,0 +1,12 @@
+{
+  "name": "gameforge-plugin-hello-tools",
+  "version": "1.0.0",
+  "description": "Example GameForge plugin: adds a read-only agent tool that summarizes the project's scripts.",
+  "type": "module",
+  "license": "MIT-0",
+  "gameforge": {
+    "id": "hello-tools",
+    "displayName": "Hello Tools (example)",
+    "entry": "index.js"
+  }
+}

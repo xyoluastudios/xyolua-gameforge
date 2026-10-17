@@ -1,0 +1,10 @@
+dist
+out
+release
+coverage
+node_modules
+pnpm-lock.yaml
+**/fixtures/**
+**/templates/**/*.gd
+*.tscn
+*.godot

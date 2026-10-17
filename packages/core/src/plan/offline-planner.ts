@@ -1,0 +1,236 @@
+import { normalizePlan, type GameFeature, type GamePlan } from './game-plan.js';
+
+/**
+ * Deterministic, keyword-based planner.
+ *
+ * This is NOT an AI. It powers the offline "mock" provider so GameForge can be
+ * developed, tested and demoed without an API key. The plan it produces only
+ * uses features that have engine templates.
+ */
+
+const SETTINGS = [
+  'space station',
+  'hospital',
+  'asylum',
+  'forest',
+  'school',
+  'mansion',
+  'castle',
+  'dungeon',
+  'cave',
+  'city',
+  'island',
+  'desert',
+  'laboratory',
+  'lab',
+  'prison',
+  'ship',
+  'mall',
+  'hotel',
+  'factory',
+  'mine',
+  'house',
+  'temple',
+  'tower',
+  'office',
+  'bunker',
+  'sewer',
+  'museum',
+  'library',
+  'village',
+];
+const ADJECTIVES = [
+  'abandoned',
+  'haunted',
+  'dark',
+  'forgotten',
+  'ancient',
+  'frozen',
+  'sunken',
+  'cursed',
+  'silent',
+  'derelict',
+  'flooded',
+  'burning',
+  'hidden',
+  'lost',
+  'neon',
+  'verlassene',
+  'verlassenen',
+];
+const ENEMY_WORDS = [
+  'monster',
+  'ghost',
+  'zombie',
+  'creature',
+  'demon',
+  'stalker',
+  'robot',
+  'alien',
+  'beast',
+  'guard',
+  'spider',
+  'skeleton',
+  'slime',
+  'wraith',
+  'patient',
+  'doctor',
+  'nurse',
+  'monstrum',
+];
+
+const has = (text: string, ...words: string[]) => words.some((w) => text.includes(w));
+const capitalize = (s: string) => s.replace(/\b\w/g, (c) => c.toUpperCase());
+
+function detectGenre(text: string): string {
+  if (has(text, 'horror', 'scary', 'creepy', 'haunted', 'monster', 'grusel')) return 'Horror';
+  if (has(text, 'platformer', 'jump and run')) return 'Platformer';
+  if (has(text, 'shooter', 'shoot', 'gun')) return 'Shooter';
+  if (has(text, 'puzzle', 'rätsel')) return 'Puzzle';
+  if (has(text, 'stealth', 'sneak')) return 'Stealth';
+  if (has(text, 'survival', 'survive')) return 'Survival';
+  if (has(text, 'rpg', 'role-playing', 'quest')) return 'RPG';
+  if (has(text, 'dungeon', 'roguelike', 'rogue-like')) return 'Dungeon Crawler';
+  return 'Adventure';
+}
+
+export function offlinePlan(description: string): GamePlan {
+  const text = description.toLowerCase();
+  const genre = detectGenre(text);
+  const quoted = /["“„']([^"”“']{2,40})["”“']/.exec(description)?.[1];
+  const setting =
+    SETTINGS.find((s) => text.includes(s)) ?? (genre === 'Horror' ? 'hospital' : 'dungeon');
+  const adjective = ADJECTIVES.find((a) => text.includes(a));
+  const title =
+    quoted ??
+    capitalize(
+      adjective && !adjective.startsWith('verlassen')
+        ? adjective
+        : setting === 'hospital'
+          ? 'abandoned'
+          : `the ${setting}`,
+    );
+
+  const wants2d = has(text, '2d', 'pixel', 'top-down', 'top down', 'platformer', 'retro');
+  const wants3d = has(text, '3d', 'first-person', 'first person', 'fps');
+  const dimension: '2d' | '3d' = wants3d ? '3d' : wants2d ? '2d' : genre === 'Horror' ? '3d' : '2d';
+
+  const features: GameFeature[] = [];
+  const add = (
+    id: string,
+    name: string,
+    description = '',
+    priority: GameFeature['priority'] = 'must',
+  ) => {
+    if (!features.some((f) => f.id === id)) features.push({ id, name, description, priority });
+  };
+  add(
+    'player_movement',
+    'Player movement',
+    dimension === '3d'
+      ? 'First-person walk, sprint and mouse look.'
+      : 'Top-down 8-way movement with sprint.',
+  );
+  add('interaction', 'Interaction', 'Press E to pick up items and open doors.');
+  add('health', 'Health', 'Player health, damage and game over.');
+
+  const horror = genre === 'Horror';
+  const wantsEnemies =
+    horror || has(text, ...ENEMY_WORDS, 'enemy', 'enemies', 'chase', 'verfolgt', 'gegner');
+  const wantsKeys = has(text, 'key', 'door', 'lock', 'schlüssel', 'tür');
+  if (wantsKeys || horror) add('keys_doors', 'Keys and doors', 'Find keys to unlock doors.');
+  if (has(text, 'inventory', 'item', 'collect', 'loot', 'inventar') || wantsKeys || horror) {
+    add('inventory', 'Inventory', 'Carry keys and items.');
+  }
+  if (wantsEnemies) add('enemy_ai', 'Enemy AI', 'Enemies hunt the player using grid path-finding.');
+  if (dimension === '3d' && (horror || has(text, 'flashlight', 'torch', 'dark', 'taschenlampe'))) {
+    add('flashlight', 'Flashlight', 'Toggle with F; the battery drains over time.');
+  }
+  if (horror || has(text, 'random event', 'jumpscare', 'jump scare', 'events')) {
+    add(
+      'random_events',
+      'Random events',
+      'Flickering lights and sounds keep the tension up.',
+      'should',
+    );
+  }
+  if (has(text, 'save', 'speicher', 'checkpoint') || horror)
+    add('save_system', 'Save system', 'F5 to save, F9 to load.', 'should');
+  add('objective', 'Objective', 'Reach the exit to win.');
+  add('hud', 'HUD', 'Health, items and messages.');
+  add('ambient_audio', 'Ambient audio', 'Looping ambience and sound events.', 'should');
+  add('main_menu', 'Main menu');
+  add('pause_menu', 'Pause menu', 'Esc pauses the game.');
+
+  const multiplayer = has(text, 'multiplayer', 'co-op', 'coop', 'online', 'mehrspieler');
+  const notes: string[] = [
+    'Generated by the offline planner (mock provider) — no AI was used. Configure an AI provider for richer plans.',
+  ];
+  if (multiplayer) {
+    add('multiplayer', 'Multiplayer', 'Host / join sessions and synchronize players.', 'should');
+    notes.push(
+      'Multiplayer has no engine template yet; it needs a generative AI provider (Programmer agent).',
+    );
+  }
+
+  const enemyWord = ENEMY_WORDS.find((w) => text.includes(w));
+  const enemyName =
+    enemyWord && !['monstrum'].includes(enemyWord)
+      ? capitalize(enemyWord)
+      : horror
+        ? 'Stalker'
+        : 'Guard';
+  const fast = has(text, 'fast', 'schnell');
+  const keys = wantsKeys || horror ? 3 : 0;
+
+  return normalizePlan({
+    title: title.slice(0, 60),
+    genre,
+    engine: 'godot',
+    dimension,
+    perspective: dimension === '3d' ? 'first-person' : 'top-down',
+    summary: description.trim().slice(0, 800) || 'A small game generated by GameForge.',
+    setting: capitalize(
+      `${adjective && !adjective.startsWith('verlassen') ? `${adjective} ` : ''}${setting}`,
+    ),
+    artStyle:
+      dimension === '3d' ? 'Low-poly placeholder geometry, dark lighting' : 'Flat colored tiles',
+    coreLoop: [
+      'Explore the level',
+      ...(keys ? ['Find keys and unlock doors'] : []),
+      ...(wantsEnemies ? [`Avoid the ${enemyName.toLowerCase()}`] : []),
+      'Reach the exit',
+    ],
+    features,
+    player: {
+      moveSpeed: dimension === '3d' ? 4 : 5,
+      sprintSpeed: dimension === '3d' ? 6.5 : 8,
+      maxHealth: 100,
+    },
+    enemies: wantsEnemies
+      ? [
+          {
+            name: enemyName,
+            behavior: 'chase',
+            speed: fast ? 5 : dimension === '3d' ? 3.2 : 4,
+            damage: 25,
+            count: 1,
+          },
+        ]
+      : [],
+    level: { name: `${capitalize(setting)} — Floor 1`, theme: capitalize(setting), rooms: 8, keys },
+    audio: {
+      ambience: horror ? 'Low drone, distant hum' : 'Calm ambience',
+      music: horror ? 'None (silence builds tension)' : 'Light loop',
+      events: [
+        'pickup',
+        'door_open',
+        'door_locked',
+        ...(wantsEnemies ? ['enemy_alert', 'hurt'] : []),
+        'win',
+      ],
+    },
+    multiplayer: { enabled: multiplayer, maxPlayers: multiplayer ? 4 : 1 },
+    notes,
+  });
+}

@@ -1,0 +1,50 @@
+# Installer configuration (https://www.electron.build).
+# Build locally with `pnpm package` (current OS) — CI builds all platforms on tag push.
+appId: com.xyolua.gameforge
+productName: XyoLua GameForge
+copyright: Copyright © 2026 XyoLua Studios
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**
+  - build/icon.png
+  - package.json
+  - '!**/*.map'
+# The Godot templates are plain files read at runtime.
+extraResources:
+  - from: ../../packages/godot/templates
+    to: templates
+asar: true
+npmRebuild: false
+artifactName: XyoLua-GameForge-${version}-${os}-${arch}.${ext}
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: build/icon.png
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  artifactName: XyoLua-GameForge-Setup-${version}.${ext}
+  shortcutName: XyoLua GameForge
+
+mac:
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+    - target: zip
+      arch: [arm64, x64]
+  category: public.app-category.developer-tools
+  icon: build/icon.png
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Development
+  maintainer: XyoLua Studios
+  synopsis: AI game development environment
+  icon: build/icon.png

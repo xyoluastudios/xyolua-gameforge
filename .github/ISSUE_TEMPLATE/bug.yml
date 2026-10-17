@@ -1,0 +1,64 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! **Security problems** must be reported privately — see SECURITY.md.
+        Please never paste API keys; GameForge redacts them from logs, but check before posting.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Create Game with the description "…"
+        2. Approve the plan
+        3. …
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Desktop app
+        - CLI
+        - MCP server
+        - Game generation / templates
+        - Analyzer / fixes
+        - AI provider
+        - Godot integration
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `gameforge doctor` (or Settings → Doctor)
+      render: text
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Logs panel or `<config>/logs/gameforge.log`
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: GameForge version and OS
+      placeholder: 0.1.0 on Windows 11
+    validations:
+      required: true
+  - type: input
+    id: provider
+    attributes:
+      label: AI provider and model
+      placeholder: anthropic / claude-opus-5-5
